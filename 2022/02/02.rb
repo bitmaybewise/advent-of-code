@@ -56,7 +56,10 @@ score = {
   }
 }
 
-puts "answer 1:", input.split("\n").map(&:split).map { |(oponent, me)| shapes[me] + score.dig(oponent, me) }.sum
+puts "answer 1:", input
+  .split("\n")
+  .map(&:split)
+  .reduce(0) { |acc, (oponent, me)| acc + shapes[me] + score.dig(oponent, me) }
 
 =begin
 Your puzzle answer was 8392.
@@ -76,4 +79,36 @@ The total score is still calculated in the same way, but now you need to figure 
 Now that you're correctly decrypting the ultra top secret strategy guide, you would get a total score of 12.
 
 Following the Elf's instructions for the second column, what would your total score be if everything goes exactly according to your strategy guide?
+=end
+
+score_option = {
+  "A" => {
+    "X" => "Z",
+    "Y" => "X",
+    "Z" => "Y",
+  },
+  "B" => {
+    "X" => "X",
+    "Y" => "Y",
+    "Z" => "Z",
+  },
+  "C" => {
+    "X" => "Y",
+    "Y" => "Z",
+    "Z" => "X",
+  }
+}
+
+puts "answer 2:", input
+  .split("\n")
+  .map(&:split)
+  .reduce(0) { |acc, (oponent, me)|
+    choice = score_option.dig(oponent, me)
+    acc + shapes[choice] + score.dig(oponent, choice)
+  }
+
+=begin
+Your puzzle answer was 10116.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
 =end
