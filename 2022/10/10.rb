@@ -1,160 +1,17 @@
-input = <<-INPUT
-addx 15
-addx -11
-addx 6
-addx -3
-addx 5
-addx -1
-addx -8
-addx 13
-addx 4
-noop
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx -35
-addx 1
-addx 24
-addx -19
-addx 1
-addx 16
-addx -11
-noop
-noop
-addx 21
-addx -15
-noop
-noop
-addx -3
-addx 9
-addx 1
-addx -3
-addx 8
-addx 1
-addx 5
-noop
-noop
-noop
-noop
-noop
-addx -36
-noop
-addx 1
-addx 7
-noop
-noop
-noop
-addx 2
-addx 6
-noop
-noop
-noop
-noop
-noop
-addx 1
-noop
-noop
-addx 7
-addx 1
-noop
-addx -13
-addx 13
-addx 7
-noop
-addx 1
-addx -33
-noop
-noop
-noop
-addx 2
-noop
-noop
-noop
-addx 8
-noop
-addx -1
-addx 2
-addx 1
-noop
-addx 17
-addx -9
-addx 1
-addx 1
-addx -3
-addx 11
-noop
-noop
-addx 1
-noop
-addx 1
-noop
-noop
-addx -13
-addx -19
-addx 1
-addx 3
-addx 26
-addx -30
-addx 12
-addx -1
-addx 3
-addx 1
-noop
-noop
-noop
-addx -9
-addx 18
-addx 1
-addx 2
-noop
-noop
-addx 9
-noop
-noop
-noop
-addx -1
-addx 2
-addx -37
-addx 1
-addx 3
-noop
-addx 15
-addx -21
-addx 22
-addx -6
-addx 1
-noop
-addx 2
-addx 1
-noop
-addx -10
-noop
-noop
-addx 20
-addx 1
-addx 2
-addx 2
-addx -6
-addx -11
-noop
-noop
-noop
-INPUT
-# input = File.read("#{__dir__}/input")
+input = File.read("#{__dir__}/input")
 input = input.split("\n")
 
-reg_x, cycles, signals = 1, [], {}
+reg_x, cycles, signals, screen, sprite_idx = 1, [], {}, Array.new(6) { Array.new(40) }, 0
 i = 0
 while input.size > 0
   i += 1
   signals[i] = reg_x if i == 20 || i == 60 || i == 100 || i == 140 || i == 180 || i == 220
-
+  
+  sprite = ((reg_x-1)..(reg_x+1)).to_a
+  horizontal_pos = (i-1)%40
+  screen[sprite_idx][horizontal_pos] = sprite.include?(horizontal_pos) ? '#' : '.'
+  sprite_idx += 1 if horizontal_pos == 39
+  
   if (value = cycles.pop) != nil
     reg_x += value
     next
@@ -166,10 +23,11 @@ while input.size > 0
   else
     # ignore
   end
-  
 end
 
 puts "answer 1", signals.reduce(0) { |sum, (idx, value)| sum += idx*value }
+
+puts "answer 2", screen.map(&:join)
 
 __END__
 
@@ -497,3 +355,7 @@ Allowing the program to run to completion causes the CRT to produce the followin
 #######.......#######.......#######.....
 
 Render the image given by your program. What eight capital letters appear on your CRT?
+
+Your puzzle answer was EALGULPG.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
