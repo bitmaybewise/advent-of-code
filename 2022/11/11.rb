@@ -1,76 +1,60 @@
-input = <<-INPUT
-Monkey 0:
-  Starting items: 79, 98
-  Operation: new = old * 19
-  Test: divisible by 23
-    If true: throw to monkey 2
-    If false: throw to monkey 3
-
-Monkey 1:
-  Starting items: 54, 65, 75, 74
-  Operation: new = old + 6
-  Test: divisible by 19
-    If true: throw to monkey 2
-    If false: throw to monkey 0
-
-Monkey 2:
-  Starting items: 79, 60, 97
-  Operation: new = old * old
-  Test: divisible by 13
-    If true: throw to monkey 1
-    If false: throw to monkey 3
-
-Monkey 3:
-  Starting items: 74
-  Operation: new = old + 3
-  Test: divisible by 17
-    If true: throw to monkey 0
-    If false: throw to monkey 1
-INPUT
 input = File.read("#{__dir__}/input")
 input = input.split("\n\n")
 
-monkeys = []
-input.each_with_index do |lines, monkey|
-  monkeys[monkey] = { inspect: 0 }
-  lines.split("\n").map(&:strip).each do |line|
-    case line.split(" ")
-    in ["Starting", "items:", *items]
-      monkeys[monkey][:items] = items.map { _1.gsub(",", "").to_i }
-    in ["Operation:", "new", "=", "old", op, n]
-      monkeys[monkey][:operation_op] = op
-      monkeys[monkey][:operation_n] = n == "old" ? n : n.to_i
-    in ["Test:", "divisible", "by", n]
-      monkeys[monkey][:test_op] = "%"
-      monkeys[monkey][:test_n] = n.to_i
-    in ["If", "true:", "throw", "to", "monkey", throw_to]
-      monkeys[monkey][:true_throw_to] = throw_to.to_i
-    in ["If", "false:", "throw", "to", "monkey", throw_to]
-      monkeys[monkey][:false_throw_to] = throw_to.to_i
-    else
-      # ignore
+parse_monkeys = -> do
+  monkeys = []
+
+  input.each_with_index do |lines, monkey|
+    monkeys[monkey] = { inspect: 0 }
+    lines.split("\n").map(&:strip).each do |line|
+      case line.split(" ")
+      in ["Starting", "items:", *items]
+        monkeys[monkey][:items] = items.map { _1.gsub(",", "").to_i }
+      in ["Operation:", "new", "=", "old", op, n]
+        monkeys[monkey][:operation_op] = op
+        monkeys[monkey][:operation_n] = n == "old" ? n : n.to_i
+      in ["Test:", "divisible", "by", n]
+        monkeys[monkey][:test_op] = "%"
+        monkeys[monkey][:test_n] = n.to_i
+      in ["If", "true:", "throw", "to", "monkey", throw_to]
+        monkeys[monkey][:true_throw_to] = throw_to.to_i
+      in ["If", "false:", "throw", "to", "monkey", throw_to]
+        monkeys[monkey][:false_throw_to] = throw_to.to_i
+      else
+        # ignore
+      end
     end
   end
+
+  monkeys
 end
 
-i, monkey = 0, 0
-while i < (20 * monkeys.size)
-  monkey = i % monkeys.size
+solve = ->(monkeys, divide_by, upto) do
+  magic_mod = monkeys.map { _1[:test_n] }.reduce(:*)
 
-  while monkeys[monkey][:items].size > 0
-    monkeys[monkey][:inspect] += 1
-    item = monkeys[monkey][:items].delete_at(0)
-    operation_n = monkeys[monkey][:operation_n] == "old" ? item : monkeys[monkey][:operation_n]
-    n = item.send(monkeys[monkey][:operation_op], operation_n) / 3
-    test = n.send(monkeys[monkey][:test_op], monkeys[monkey][:test_n])
-    throw_to = monkeys[monkey][:"#{test==0}_throw_to"]
-    monkeys[throw_to][:items] << n
+  i = 0
+  while i < (upto * monkeys.size)
+    monkey = i % monkeys.size
+  
+    while monkeys[monkey][:items].size > 0
+      monkeys[monkey][:inspect] += 1
+      item = monkeys[monkey][:items].delete_at(0)
+      operation_n = monkeys[monkey][:operation_n] == "old" ? item : monkeys[monkey][:operation_n]
+      n = item.send(monkeys[monkey][:operation_op], operation_n) / divide_by
+      n = n % magic_mod
+      test = n.send(monkeys[monkey][:test_op], monkeys[monkey][:test_n])
+      throw_to = monkeys[monkey][:"#{test==0}_throw_to"]
+      monkeys[throw_to][:items] << n
+    end
+
+    i += 1
   end
 
-  i += 1
+  monkeys.map { _1[:inspect] }.max(2).reduce(:*)
 end
 
-puts "answer 1", monkeys.map { _1[:inspect] }.max(2).reduce(:*)
+puts "answer 1", solve.(parse_monkeys.(), 3, 20)
+puts "answer 2", solve.(parse_monkeys.(), 1, 10_000)
 
 __END__
 
@@ -382,3 +366,7 @@ Monkey 3 inspected items 52013 times.
 After 10000 rounds, the two most active monkeys inspected items 52166 and 52013 times. Multiplying these together, the level of monkey business in this situation is now 2713310158.
 
 Worry levels are no longer divided by three after each item is inspected; you'll need to find another way to keep your worry levels manageable. Starting again from the initial state in your puzzle input, what is the level of monkey business after 10000 rounds?
+
+Your puzzle answer was 14561971968.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
